@@ -7,7 +7,7 @@ name: Docker Multi-Registry Push
 
 on:
   push:
-    branches: [ "main" ]
+    # branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
@@ -21,6 +21,19 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Ensure only `v*.*.*` tags on `main` branch run GitHub Action
+  # check-branch:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check if tag is from main branch
+  #       run: |
+  #         DEFAULT_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|origin/||')
+  #         TAG_BRANCH=$(git branch --contains ${{ github.ref }} | grep "$DEFAULT_BRANCH" || true)
+  #         if [ -z "$TAG_BRANCH" ]; then
+  #           echo "Tag is not from $DEFAULT_BRANCH. Exiting..."
+  #           exit 1
+  #         fi
+
   build:
     runs-on: ubuntu-latest
     permissions:
