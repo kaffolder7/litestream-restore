@@ -37,8 +37,10 @@ FROM ${VARIANT} as final
 # Copy from builder to final image
 COPY --from=builder /litestream /usr/local/bin/
 
-# Ensure `litestream` is executable
-RUN chmod +x /usr/local/bin/litestream
+# Create init script
+COPY init-db.sh /usr/local/bin/
 
-# CMD ["sh"]
-CMD ["litestream", "restore", "-if-replica-exists"]
+# Ensure `init-db.sh` script and `litestream` are executable
+RUN chmod +x /usr/local/bin/init-db.sh /usr/local/bin/litestream
+
+ENTRYPOINT ["/usr/local/bin/init-db.sh"]
