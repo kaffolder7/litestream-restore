@@ -4,7 +4,7 @@ A minimal Alpine-based image containing [Litestream](https://litestream.io/) and
 
 ## Features
 - Based on Alpine Linux for minimal footprint
-- Includes Litestream v0.3.13 and SQLite
+- Includes Litestream [v0.3.13](https://github.com/benbjohnson/litestream/releases/tag/v0.3.13) and SQLite
 - Optimized for Docker Swarm deployments
 - No unnecessary dependencies
 
