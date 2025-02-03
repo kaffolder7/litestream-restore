@@ -1,0 +1,32 @@
+# Ignore local Docker image tarballs
+*.tar
+*.tar.gz
+*.tar.bz2
+
+# Ignore build artifacts
+/build/
+*.o
+*.so
+*.a
+*.out
+*.exe
+
+# Ignore logs and temporary files
+logs/
+*.log
+*.tmp
+*.swp
+
+# Ignore `.dockerignore` file if you don't want it committed
+.dockerignore
+
+# Ignore Docker cache layers
+**/node_modules/
+**/vendor/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Project-specific files
+*backup*
