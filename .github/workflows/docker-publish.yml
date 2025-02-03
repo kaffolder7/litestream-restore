@@ -17,8 +17,15 @@ env:
   # Registry URLs
   GITHUB_REGISTRY: ghcr.io
   DOCKERHUB_REGISTRY: docker.io
-  # Image name (from GitHub repository, formatted as `<account>/<repo>`)
-  IMAGE_NAME: ${{ github.repository }}
+  # IMAGE_NAME: ${{ github.event.repository.name }}
+  # GitHub image name (formatted as `<account>/<repo>`)
+  GITHUB_IMAGE_NAME: ${{ github.repository }}
+  # Docker Hub image name (using Docker Hub username)
+  # DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/litestream-restore
+  DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+  # ${GITHUB_REPOSITORY#*/}
+  # ${{ github.repository }}
+  # ${{ github.repository_owner }}   
 
 jobs:
   # Ensure only `v*.*.*` tags on `main` branch run GitHub Action
@@ -78,18 +85,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Hub login test
-        if: github.event_name != 'pull_request'
-        run: |
-          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-          docker pull hello-world
-
       # Extract metadata for both registries
       - name: Extract Docker metadata for GitHub Packages
         id: meta-github
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
-          images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.GITHUB_REGISTRY }}/${{ env.GITHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
             type=ref,event=branch
@@ -102,7 +103,8 @@ jobs:
         id: meta-dockerhub
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          # images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.DOCKERHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
             type=ref,event=branch
