@@ -78,6 +78,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Docker Hub login test
+        if: github.event_name != 'pull_request'
+        run: |
+          echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker pull hello-world
+
       # Extract metadata for both registries
       - name: Extract Docker metadata for GitHub Packages
         id: meta-github
