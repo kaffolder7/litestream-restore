@@ -17,15 +17,12 @@ env:
   # Registry URLs
   GITHUB_REGISTRY: ghcr.io
   DOCKERHUB_REGISTRY: docker.io
-  # IMAGE_NAME: ${{ github.event.repository.name }}
   # GitHub image name (formatted as `<account>/<repo>`)
   GITHUB_IMAGE_NAME: ${{ github.repository }}
   # Docker Hub image name (using Docker Hub username)
-  # DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/litestream-restore
   DOCKERHUB_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
-  # ${GITHUB_REPOSITORY#*/}
-  # ${{ github.repository }}
-  # ${{ github.repository_owner }}   
+  ALPINE_VERSION: "3.21"
+  DEBIAN_VERSION: "bookworm-slim"
 
 jobs:
   # Ensure only `v*.*.*` tags on `main` branch run GitHub Action
@@ -42,6 +39,9 @@ jobs:
   #         fi
 
   build:
+    strategy:
+      matrix:
+        variant: [alpine, debian]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -93,12 +93,12 @@ jobs:
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.GITHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
-            type=ref,event=branch
+            type=ref,event=branch,suffix=-${{ matrix.variant }}
             # Tag releases as version (v1.0.0), major.minor (v1.0), and latest
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
-      
+            type=semver,pattern={{version}},suffix=-${{ matrix.variant }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }}
+            type=raw,value=latest-${{ matrix.variant }},enable={{is_default_branch}}
+
       - name: Extract Docker metadata for Docker Hub
         id: meta-dockerhub
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
@@ -107,11 +107,11 @@ jobs:
           images: ${{ env.DOCKERHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
-            type=ref,event=branch
+            type=ref,event=branch,suffix=-${{ matrix.variant }}
             # Tag releases as version (v1.0.0), major.minor (v1.0), and latest
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}},suffix=-${{ matrix.variant }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }}
+            type=raw,value=latest-${{ matrix.variant }},enable={{is_default_branch}}
       
       # Build and push Docker image with Buildx to both registries (don't push on PR)
       - name: Build and push Docker image
@@ -124,6 +124,10 @@ jobs:
             ${{ steps.meta-github.outputs.tags }}
             ${{ steps.meta-dockerhub.outputs.tags }}
           labels: ${{ steps.meta-github.outputs.labels }}
+          build-args: |
+            VARIANT=${{ matrix.variant }}
+            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
+            DEBIAN_VERSION=${{ env.DEBIAN_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
