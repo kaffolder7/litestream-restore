@@ -93,11 +93,16 @@ jobs:
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.GITHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
-            type=ref,event=branch,suffix=-${{ matrix.variant }}
+            # For Alpine variant, add suffix
+            type=ref,event=branch,suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=ref,event=branch,enable=${{ matrix.variant == 'debian' }}
             # Tag releases as version (v1.0.0), major.minor (v1.0), and latest
-            type=semver,pattern={{version}},suffix=-${{ matrix.variant }}
-            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }}
-            type=raw,value=latest-${{ matrix.variant }},enable={{is_default_branch}}
+            type=semver,pattern={{version}},suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=semver,pattern={{version}},enable=${{ matrix.variant == 'debian' }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ matrix.variant == 'debian' }}
+            type=raw,value=latest-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' && github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ matrix.variant == 'debian' && github.ref == 'refs/heads/main' }}
 
       - name: Extract Docker metadata for Docker Hub
         id: meta-dockerhub
@@ -107,11 +112,16 @@ jobs:
           images: ${{ env.DOCKERHUB_IMAGE_NAME }}
           tags: |
             # Tag branches as type=ref,event=branch
-            type=ref,event=branch,suffix=-${{ matrix.variant }}
+            # For Alpine variant, add suffix
+            type=ref,event=branch,suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=ref,event=branch,enable=${{ matrix.variant == 'debian' }}
             # Tag releases as version (v1.0.0), major.minor (v1.0), and latest
-            type=semver,pattern={{version}},suffix=-${{ matrix.variant }}
-            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }}
-            type=raw,value=latest-${{ matrix.variant }},enable={{is_default_branch}}
+            type=semver,pattern={{version}},suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=semver,pattern={{version}},enable=${{ matrix.variant == 'debian' }}
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ matrix.variant == 'debian' }}
+            type=raw,value=latest-${{ matrix.variant }},enable=${{ matrix.variant == 'alpine' && github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ matrix.variant == 'debian' && github.ref == 'refs/heads/main' }}
       
       # Build and push Docker image with Buildx to both registries (don't push on PR)
       - name: Build and push Docker image
